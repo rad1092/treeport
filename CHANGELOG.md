@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 — 2026-10-08
+
+- Preserve literal trailing backslashes in POSIX/macOS destination-root path budgets.
+- Advance posix/macos profile revisions to 2; windows/export-fold remain at revision 2.
+- Add independent boundary tests and actual Unix filesystem fixtures proving the byte accounting and source preservation.
+
 ## 0.1.1 — 2026-10-08
 
 - Reject Windows console aliases CONIN$/CONOUT$ and space-padded device basenames before extensions.

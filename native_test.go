@@ -102,3 +102,56 @@ func TestNativeFilesystem(t *testing.T) {
 		t.Fatalf("source enumeration changed: %v", err)
 	}
 }
+
+// Verify the boundary against a real path: on Unix hosts a backslash is part
+// of the directory name, so it must consume a byte in the destination budget.
+func TestNativeFilesystemLiteralBackslashRootBudget(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("backslash is a Windows separator; literal-backslash fixture requires a Unix host")
+	}
+	parent := t.TempDir()
+	root := filepath.Join(parent, `a\`)
+	if err := os.Mkdir(root, 0700); err != nil {
+		t.Fatal(err)
+	}
+	file := filepath.Join(root, "x")
+	content := []byte("literal-backslash-root\n")
+	if err := os.WriteFile(file, content, 0600); err != nil {
+		t.Fatal(err)
+	}
+	items, err := os.ReadDir(parent)
+	if err != nil || len(items) != 1 || items[0].Name() != `a\` {
+		t.Fatalf("literal backslash not preserved: %v %v", items, err)
+	}
+	entries, err := input.Tree(context.Background(), root, treeport.DefaultLimits())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, profile := range []string{"posix", "macos"} {
+		for _, trailingSlash := range []bool{false, true} {
+			destination := root
+			if trailingSlash {
+				destination += "/"
+			}
+			for _, delta := range []int{-1, 0} {
+				limit := len(file) + delta
+				r, err := treeport.Check(context.Background(), entries, treeport.Options{Profile: profile, DestinationRoot: destination, MaxPath: limit})
+				if err != nil {
+					t.Fatal(err)
+				}
+				want := "known-compatible"
+				if delta < 0 {
+					want = "incompatible"
+				}
+				if r.Status != want {
+					t.Errorf("profile=%s trailing_slash=%t actual_bytes=%d limit=%d status=%s want=%s", profile, trailingSlash, len(file), limit, r.Status, want)
+				}
+			}
+		}
+	}
+	after, err := os.ReadFile(file)
+	if err != nil || string(after) != string(content) {
+		t.Fatal("analysis changed native fixture content", err)
+	}
+	t.Logf("NATIVE_ROOT_BUDGET os=%s literal_backslash=true actual_path_bytes=%d source_unchanged=true", runtime.GOOS, len(file))
+}

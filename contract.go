@@ -1,7 +1,7 @@
 // Package treeport checks complete destination trees without changing the source.
 package treeport
 
-const Version = "0.1.1"
+const Version = "0.1.2"
 const SchemaVersion = "1"
 
 type Entry struct {

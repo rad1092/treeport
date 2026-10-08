@@ -175,6 +175,7 @@ func getProfile(o Options) (profile, error) {
 	p := profile{name: o.Profile, version: "1"}
 	switch o.Profile {
 	case "posix":
+		p.version = "2"
 		p.component = 255
 		p.path = 4095
 	case "windows":
@@ -183,6 +184,7 @@ func getProfile(o Options) (profile, error) {
 		p.path = 259
 		p.utf16 = true
 	case "macos":
+		p.version = "2"
 		p.component = 255
 		p.path = 1023
 	case "export-fold":
@@ -253,6 +255,13 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 	if p.name == "windows" || p.name == "macos" {
 		report.Limitations = append(report.Limitations, "Non-ASCII comparison is a Unicode folding candidate, not the filesystem's exact versioned comparison table; affected names are unknown.")
 	}
+	// Destination syntax is profile-specific. Backslash is a literal byte
+	// in POSIX/macOS roots, even though input manifests use a stricter grammar.
+	rootSeparators := "/"
+	if p.name == "windows" || p.name == "export-fold" {
+		rootSeparators = "/\\"
+	}
+	budgetRoot := strings.TrimRight(opts.DestinationRoot, rootSeparators)
 	if len(entries) > lim.MaxEntries {
 		return report, fmt.Errorf("entry budget exceeded (%d)", lim.MaxEntries)
 	}
@@ -464,10 +473,9 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 				nodes[key] = &indexedNode{source: path, raw: e.Path, target: "\x00" + path, kind: e.Kind, explicit: 1, uncertain: true}
 			}
 		}
-		root := strings.TrimRight(opts.DestinationRoot, "/\\")
 		joined := budgetPath
 		if opts.DestinationRoot != "" {
-			joined = root + "/" + budgetPath
+			joined = budgetRoot + "/" + budgetPath
 		}
 		if (p.name == "posix" || utf8.ValidString(path)) && units(joined, p.utf16) > p.path {
 			addIssue("path_budget", "incompatible", e.Path, fmt.Sprintf("destination root plus path uses %d units; budget %d", units(joined, p.utf16), p.path))
