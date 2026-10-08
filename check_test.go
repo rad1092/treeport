@@ -152,3 +152,29 @@ func TestInvalidDirectorySpellings(t *testing.T) {
 		t.Fatalf("lost invalid-byte spelling variants: %+v %v", r, err)
 	}
 }
+
+func TestConsoleDevicesAndSpacedReservedBases(t *testing.T) {
+	for _, profile := range []string{"windows", "export-fold"} {
+		for _, name := range []string{"CONIN$", "conout$", "CONIN$.log", "CON .txt", "LPT1 .txt", "COM¹ .txt"} {
+			t.Run(profile+"/"+name, func(t *testing.T) {
+				r, err := Check(context.Background(), []Entry{{name, "file"}}, Options{Profile: profile, DestinationRoot: `C:\dst`})
+				if err != nil {
+					t.Fatal(err)
+				}
+				found := false
+				for _, issue := range r.Issues {
+					found = found || issue.Code == "reserved_name"
+				}
+				if !found || r.Status != "incompatible" || r.ProfileVersion != "2" {
+					t.Fatalf("missed conservative device policy %+v", r)
+				}
+			})
+		}
+	}
+	for _, name := range []string{"CONIN$extra", "COM10.txt", "console.txt"} {
+		r, err := Check(context.Background(), []Entry{{name, "file"}}, Options{Profile: "windows", DestinationRoot: `C:\dst`})
+		if err != nil || r.Status != "known-compatible" {
+			t.Fatalf("false reserved name %q: %+v %v", name, r, err)
+		}
+	}
+}

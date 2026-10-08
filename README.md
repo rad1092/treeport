@@ -20,7 +20,7 @@ Use Treeport in export services, archive builders, artifact pipelines, and pre-c
 Download a binary and SHA-256 checksums from [Releases](https://github.com/rad1092/treeport/releases), or build with Go 1.25+:
 
 ```sh
-go install github.com/rad1092/treeport/cmd/treeport@v0.1.0
+go install github.com/rad1092/treeport/cmd/treeport@v0.1.1
 treeport version
 treeport scan --profile windows --root 'C:\export\release' ./dist
 treeport zip --profile windows --root 'C:\export\release' --json release.zip

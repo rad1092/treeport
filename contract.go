@@ -1,7 +1,7 @@
 // Package treeport checks complete destination trees without changing the source.
 package treeport
 
-const Version = "0.1.0"
+const Version = "0.1.1"
 const SchemaVersion = "1"
 
 type Entry struct {
@@ -73,5 +73,5 @@ type Report struct {
 	Limitations     []string   `json:"limitations"`
 }
 
-// Profiles: posix, windows, macos, export-fold. Model v1; see docs/profiles.md.
+// Profiles: posix, windows, macos, export-fold. See versioned models in docs/profiles.md.
 // Check sorts its own index and does not mutate entries. Cancellation returns error.

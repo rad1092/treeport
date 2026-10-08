@@ -7,7 +7,7 @@ Whole-tree checks need the complete export tree or manifest. A changed-file-only
 ```yaml
 repos:
   - repo: https://github.com/rad1092/treeport
-    rev: v0.1.0
+    rev: v0.1.1
     hooks:
       - id: treeport
         args: [--profile, windows, --root, 'C:\checkout', .]
@@ -44,7 +44,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.25.x'
-      - run: go install github.com/rad1092/treeport/cmd/treeport@v0.1.0
+      - run: go install github.com/rad1092/treeport/cmd/treeport@v0.1.1
       # Create dist here, then check its destination namespace.
       - name: Check export
         run: treeport scan --profile windows --root 'C:\release' --json ./dist > treeport-report.json

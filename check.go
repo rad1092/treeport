@@ -56,6 +56,7 @@ func (n *indexedNode) addExplicit(raw string) {
 
 type profile struct {
 	name            string
+	version         string
 	component, path int
 	utf16           bool
 }
@@ -125,10 +126,13 @@ func trimUnits(s string, n int) string {
 	}
 	return s
 }
+
+// Reserved console aliases also open device handles:
+// https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea#consoles
 func reserved(s string) bool {
-	s = strings.ToUpper(strings.SplitN(s, ".", 2)[0])
+	s = strings.ToUpper(strings.TrimRight(strings.SplitN(s, ".", 2)[0], " "))
 	switch s {
-	case "CON", "PRN", "AUX", "NUL":
+	case "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$":
 		return true
 	}
 	if strings.HasPrefix(s, "COM") || strings.HasPrefix(s, "LPT") {
@@ -168,12 +172,13 @@ func absoluteWindows(s string) bool {
 }
 
 func getProfile(o Options) (profile, error) {
-	p := profile{name: o.Profile}
+	p := profile{name: o.Profile, version: "1"}
 	switch o.Profile {
 	case "posix":
 		p.component = 255
 		p.path = 4095
 	case "windows":
+		p.version = "2"
 		p.component = 255
 		p.path = 259
 		p.utf16 = true
@@ -181,6 +186,7 @@ func getProfile(o Options) (profile, error) {
 		p.component = 255
 		p.path = 1023
 	case "export-fold":
+		p.version = "2"
 		p.component = 255
 		p.path = 259
 		p.utf16 = true
@@ -237,7 +243,7 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 	if err != nil {
 		return Report{}, err
 	}
-	report = Report{SchemaVersion: SchemaVersion, ToolVersion: Version, Profile: p.name, ProfileVersion: "1", UnicodeVersion: norm.Version, DestinationRoot: opts.DestinationRoot, Status: "known-compatible", Complete: true, EntryCount: len(entries), Issues: []Issue{}, Conflicts: []Conflict{}, Limitations: []string{"Model-scoped filename preflight; not a universal portability or security guarantee.", "No destination mount inspection, permissions/content validation, hardlink identity or path race guarantee.", "Symlinks are not followed; existing destination contents are not scanned."}}
+	report = Report{SchemaVersion: SchemaVersion, ToolVersion: Version, Profile: p.name, ProfileVersion: p.version, UnicodeVersion: norm.Version, DestinationRoot: opts.DestinationRoot, Status: "known-compatible", Complete: true, EntryCount: len(entries), Issues: []Issue{}, Conflicts: []Conflict{}, Limitations: []string{"Model-scoped filename preflight; not a universal portability or security guarantee.", "No destination mount inspection, permissions/content validation, hardlink identity or path race guarantee.", "Symlinks are not followed; existing destination contents are not scanned."}}
 	report.ComponentBudget = p.component
 	report.PathBudget = p.path
 	report.LengthUnit = "bytes"
@@ -569,7 +575,7 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 				}
 			}
 			h := sha256.New()
-			fmt.Fprintf(h, "%s\x00%s\x00%s", p.name, "1", group[0].target)
+			fmt.Fprintf(h, "%s\x00%s\x00%s", p.name, p.version, group[0].target)
 			for _, m := range members {
 				fmt.Fprintf(h, "\x00%s\x00%s\x00%d", m.Path.Base64, m.Kind, m.Count)
 			}

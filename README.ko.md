@@ -11,7 +11,7 @@
 [Releases](https://github.com/rad1092/treeport/releases)에서 운영체제에 맞는 실행 파일과 체크섬을 받거나 Go 1.25 이상으로 설치합니다.
 
 ```sh
-go install github.com/rad1092/treeport/cmd/treeport@v0.1.0
+go install github.com/rad1092/treeport/cmd/treeport@v0.1.1
 treeport scan --profile windows --root 'C:\export\release' ./dist
 treeport zip --profile windows --root 'C:\export\release' --json release.zip
 ```

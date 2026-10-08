@@ -1,6 +1,6 @@
-# Destination profiles, version 1
+# Versioned destination profiles
 
-A profile is a reproducible model selected by the caller. Treeport does not discover the destination filesystem. Each JSON report includes `profile`, `profile_version`, and `unicode_version`; Unicode normalization and folding reuse `golang.org/x/text` rather than a custom Unicode table. Version 0.1.0 pins x/text v0.28.0, using Unicode 15.0.0 and reporting the normalization table version at runtime.
+A profile is a reproducible model selected by the caller. Treeport does not discover the destination filesystem. Each JSON report includes `profile`, `profile_version`, and `unicode_version`; Unicode normalization and folding reuse `golang.org/x/text` rather than a custom Unicode table. Version 0.1.1 pins x/text v0.28.0, using Unicode 15.0.0 and reporting the normalization table version at runtime.
 
 | Profile | Comparison / transformation | Component default | Full path default |
 | --- | --- | --- | --- |
@@ -38,3 +38,7 @@ NFC is not NFKC: fullwidth `Ａ` and ASCII `A` remain distinct after folding, wh
 Invalid UTF-8 is retained as raw bytes for `posix`. Unicode profiles report `invalid_utf8` as unknown, while still detecting exact-byte duplicate entries as definite conflicts and checking valid parent prefixes before the invalid component. Symlinks are indexed by name but their target behavior is unknown. These uncertainties cannot be cleared by selecting a larger length budget.
 
 For normalization terminology see [Unicode Standard Annex #15](https://unicode.org/reports/tr15/). Profile behavior changes require a new profile version; schema changes are tracked separately.
+
+## Profile revisions
+
+`posix` and `macos` remain at model version 1. Treeport 0.1.1 uses model version 2 for `windows` and `export-fold`: it also rejects `CONIN$`, `CONOUT$`, and device basenames padded with ASCII spaces before an extension (for example `CON .txt`). The console aliases are documented in [CreateFile's console rules](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea#consoles). This is a conservative policy across Windows tools; newer individual APIs may accept particular extension variants. Version 0.1.0/model 1 did not diagnose those spellings. Group IDs include the selected model revision.

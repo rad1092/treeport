@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 — 2026-10-08
+
+- Reject Windows console aliases CONIN$/CONOUT$ and space-padded device basenames before extensions.
+- Advance windows/export-fold profile revisions to 2; retain profile 1 identity for posix/macos.
+- Add positive and negative regression cases for these documented reserved names.
+
 ## 0.1.0 — 2026-10-08
 
 Initial release of the read-only Go library and CLI.
