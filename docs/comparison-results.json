@@ -5,6 +5,7 @@
     "pathologize": "1a30a09a9ec903c0d4152af1dfbbd2f964ccebc8"
   },
   "python": "3.14.6",
+  "go": "go version go1.27.1 darwin/arm64",
   "records": [
     {
       "fixture": "ascii-parent-alias",

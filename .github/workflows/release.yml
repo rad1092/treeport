@@ -59,4 +59,3 @@ jobs:
           --verify-tag
           --title "treeport $RELEASE_TAG"
           --generate-notes
-

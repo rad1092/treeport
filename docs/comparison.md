@@ -14,7 +14,7 @@ The comparison executes upstream code at these revisions. No upstream source is 
 | [CrossRename](https://github.com/Jemeni11/CrossRename/tree/7d8e0568bddd05dd0db8ac23920a25a6d53e358c) | `7d8e0568bddd05dd0db8ac23920a25a6d53e358c` | Real `sanitize_filename` and `rename_file(dry_run=True)` |
 | [Pathologize](https://github.com/spf13/pathologize/tree/1a30a09a9ec903c0d4152af1dfbbd2f964ccebc8) | `1a30a09a9ec903c0d4152af1dfbbd2f964ccebc8` | Public Go `CleanPath` API |
 
-[Machine-readable results](comparison-results.json) were produced by [compare_baselines.py](compare_baselines.py). The script verifies revision IDs; uses real temporary Git indexes so host normalization does not erase fixture names; calls the unmodified hook function; uses the exact `language: fail` regex from upstream YAML; and executes the sanitizer APIs. It does not pretend the regex is a separate Python command or run a substitute implementation of upstream rules. Python 3.14.6 and Go 1.25 were used on macOS. The wrapper's CLI/package-install behavior is outside this comparison.
+[Machine-readable results](comparison-results.json) were produced by [compare_baselines.py](compare_baselines.py). The script verifies revision IDs; uses real temporary Git indexes so host normalization does not erase fixture names; calls the unmodified hook function; uses the exact `language: fail` regex from upstream YAML; and executes the sanitizer APIs. It does not pretend the regex is a separate Python command or run a substitute implementation of upstream rules. Python 3.14.6 and Go 1.27.1 were used on macOS arm64. The wrapper's CLI/package-install behavior is outside this comparison.
 
 | Case | Existing behavior observed | Treeport behavior |
 | --- | --- | --- |

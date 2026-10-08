@@ -249,7 +249,11 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 			return report, fmt.Errorf("unsupported entry kind %q", e.Kind)
 		}
 	}
-	nodes := make(map[nodeKey]*indexedNode, len(entries))
+	capacity := min(len(entries), lim.MaxNodes)
+	if int64(capacity) > lim.MaxIndexBytes/128 {
+		capacity = int(lim.MaxIndexBytes / 128)
+	}
+	nodes := make(map[nodeKey]*indexedNode, capacity)
 	indexBytes := int64(0)
 	truncated := false
 	addIssue := func(code, status, path, detail string) {

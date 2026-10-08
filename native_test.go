@@ -81,10 +81,20 @@ func TestNativeFilesystem(t *testing.T) {
 	}
 	if runtime.GOOS == "windows" {
 		err := create("COM¹")
-		if err == nil {
-			t.Fatal("observed Win32 API accepted reserved COM¹; model requires re-evaluation")
+		accepted := err == nil
+		t.Logf("NATIVE_WINDOWS go_open_reserved_superscript_accepted=%t", accepted)
+		if accepted {
+			if err := os.Remove(filepath.Join(root, "COM¹")); err != nil {
+				t.Fatal(err)
+			}
 		}
-		t.Log("NATIVE_WINDOWS reserved COM¹ rejected")
+		// Modern APIs may accept a spelling forbidden by Microsoft's documented
+		// shell portability policy. Observe that distinction rather than assuming
+		// that policy rejection is an exact syscall/filesystem emulator.
+		policy, err := treeport.Check(context.Background(), []treeport.Entry{{Path: "COM¹", Kind: "file"}}, treeport.Options{Profile: "windows", DestinationRoot: `C:\dst`})
+		if err != nil || policy.Status != "incompatible" {
+			t.Fatalf("documented reserved-name policy not enforced: %+v %v", policy, err)
+		}
 	}
 	// Re-enumeration proves that analysis did not rename or change the source.
 	after, err := input.Tree(context.Background(), root, treeport.DefaultLimits())
