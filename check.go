@@ -40,6 +40,20 @@ type indexedNode struct {
 	uncertain                 bool
 	spellings                 map[string]int
 }
+
+func (n *indexedNode) addExplicit(raw string) {
+	if n.explicit > 0 && raw != n.raw && n.spellings == nil {
+		n.spellings = map[string]int{n.raw: n.explicit}
+	}
+	if n.spellings != nil {
+		n.spellings[raw]++
+	}
+	n.explicit++
+	if n.raw == n.source || raw < n.raw {
+		n.raw = raw
+	}
+}
+
 type profile struct {
 	name            string
 	component, path int
@@ -409,15 +423,8 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 			}
 			key := nodeKey{sourcePrefix, kind}
 			if n, ok := nodes[key]; ok {
-				if explicit > 0 && n.explicit > 0 && raw != n.raw && n.spellings == nil {
-					n.spellings = map[string]int{n.raw: n.explicit}
-				}
-				if explicit > 0 && n.spellings != nil {
-					n.spellings[raw]++
-				}
-				n.explicit += explicit
-				if explicit > 0 && (n.raw == n.source || raw < n.raw) {
-					n.raw = raw
+				if explicit > 0 {
+					n.addExplicit(raw)
 				}
 				n.causes |= inherited | causes
 				n.uncertain = n.uncertain || uncertain
@@ -439,7 +446,7 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 		if !utf8.ValidString(path) && p.name != "posix" {
 			key := nodeKey{path, e.Kind}
 			if n, ok := nodes[key]; ok {
-				n.explicit++
+				n.addExplicit(e.Path)
 			} else {
 				if len(nodes) >= lim.MaxNodes {
 					return report, errors.New("tree node budget exceeded")

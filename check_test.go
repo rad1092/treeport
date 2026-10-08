@@ -144,3 +144,11 @@ func TestExactInvalidUTF8Duplicates(t *testing.T) {
 		t.Fatal("lost byte identity")
 	}
 }
+
+func TestInvalidDirectorySpellings(t *testing.T) {
+	p := string([]byte{0xff, 'd'})
+	r, err := Check(context.Background(), []Entry{{p, "directory"}, {p + "/", "directory"}}, Options{Profile: "export-fold"})
+	if err != nil || len(r.Conflicts) != 1 || len(r.Conflicts[0].Members) != 2 {
+		t.Fatalf("lost invalid-byte spelling variants: %+v %v", r, err)
+	}
+}
