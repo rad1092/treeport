@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: '1.27.1'
+          cache: true
+      - run: go test -count=1 ./...
+      - run: go test -count=1 -run TestNativeFilesystem -v ./...
+      - run: go test -race -count=1 ./...
+      - run: go vet ./...
+
+  publish:
+    name: Package and publish validated commit
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: '1.27.1'
+          cache: true
+      - name: Verify release tag agrees with source version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: test "$(go run ./cmd/treeport version)" = "treeport ${RELEASE_TAG#v}"
+      - name: Build archives and checksums
+        run: go run ./scripts/release -out dist
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: >-
+          gh release create "$RELEASE_TAG" dist/*
+          --verify-tag
+          --title "treeport $RELEASE_TAG"
+          --generate-notes
+

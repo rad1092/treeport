@@ -1,0 +1,120 @@
+{
+  "pins": {
+    "precommit": "ccfd9947817b7c328abdbe1b9867adbae8fc6843",
+    "crossrename": "7d8e0568bddd05dd0db8ac23920a25a6d53e358c",
+    "pathologize": "1a30a09a9ec903c0d4152af1dfbbd2f964ccebc8"
+  },
+  "python": "3.14.6",
+  "records": [
+    {
+      "fixture": "ascii-parent-alias",
+      "precommit_case_exit": 1,
+      "precommit_case_output": [
+        "Case-insensitivity conflict found: Docs",
+        "Case-insensitivity conflict found: docs"
+      ],
+      "precommit_illegal_paths": [],
+      "crossrename_component_outputs": [
+        "Docs/one.txt",
+        "docs/two.txt"
+      ],
+      "pathologize_cleanpath_outputs": [
+        "Docs/one.txt",
+        "docs/two.txt"
+      ]
+    },
+    {
+      "fixture": "normalization-parent-alias",
+      "precommit_case_exit": 0,
+      "precommit_case_output": [],
+      "precommit_illegal_paths": [],
+      "crossrename_component_outputs": [
+        "café/one.txt",
+        "café/two.txt"
+      ],
+      "pathologize_cleanpath_outputs": [
+        "café/one.txt",
+        "café/two.txt"
+      ]
+    },
+    {
+      "fixture": "composed-transformations",
+      "precommit_case_exit": 0,
+      "precommit_case_output": [],
+      "precommit_illegal_paths": [
+        "CAFÉ/a?b.txt",
+        "café/a*b.txt"
+      ],
+      "crossrename_component_outputs": [
+        "CAFÉ/ab.txt",
+        "café/ab.txt"
+      ],
+      "pathologize_cleanpath_outputs": [
+        "CAFÉ/ab.txt",
+        "café/ab.txt"
+      ]
+    },
+    {
+      "fixture": "replacement-collision",
+      "precommit_case_exit": 0,
+      "precommit_case_output": [],
+      "precommit_illegal_paths": [
+        "report?.txt",
+        "report*.txt"
+      ],
+      "crossrename_component_outputs": [
+        "report.txt",
+        "report.txt"
+      ],
+      "pathologize_cleanpath_outputs": [
+        "report.txt",
+        "report.txt"
+      ]
+    },
+    {
+      "fixture": "truncation-collision",
+      "precommit_case_exit": 0,
+      "precommit_case_output": [],
+      "precommit_illegal_paths": [],
+      "crossrename_component_outputs": [
+        "abcdefgh-one",
+        "abcdefgh-two"
+      ],
+      "pathologize_cleanpath_outputs": [
+        "abcdefgh-one",
+        "abcdefgh-two"
+      ]
+    },
+    {
+      "fixture": "windows-root-budget",
+      "precommit_case_exit": 0,
+      "precommit_case_output": [],
+      "precommit_illegal_paths": [],
+      "crossrename_component_outputs": [
+        "한국어/😀.txt"
+      ],
+      "pathologize_cleanpath_outputs": [
+        "한국어/😀.txt"
+      ]
+    },
+    {
+      "fixture": "korean-canonical-equivalence",
+      "precommit_case_exit": 0,
+      "precommit_case_output": [],
+      "precommit_illegal_paths": [],
+      "crossrename_component_outputs": [
+        "한글.txt",
+        "한글.txt"
+      ],
+      "pathologize_cleanpath_outputs": [
+        "한글.txt",
+        "한글.txt"
+      ]
+    }
+  ],
+  "crossrename_actual_dry_run": [
+    "[Dry-run] Would rename: report?.txt -> report.txt",
+    "[Dry-run] Would rename: report*.txt -> report.txt"
+  ],
+  "dry_run_source_unchanged": true
+}

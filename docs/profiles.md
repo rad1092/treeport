@@ -1,0 +1,38 @@
+# Destination profiles, version 1
+
+A profile is a reproducible model selected by the caller. Treeport does not discover the destination filesystem. Each JSON report includes `profile`, `profile_version`, and `unicode_version`; Unicode normalization and folding reuse `golang.org/x/text` rather than a custom Unicode table. Version 0.1.0 pins x/text v0.28.0, using Unicode 15.0.0 and reporting the normalization table version at runtime.
+
+| Profile | Comparison / transformation | Component default | Full path default |
+| --- | --- | --- | --- |
+| `posix` | Exact raw bytes, case sensitive | 255 bytes | 4095 bytes |
+| `windows` | Case-insensitive Win32-oriented model; trims terminal ASCII dot/space for alias detection | 255 UTF-16 code units | 259 UTF-16 code units |
+| `macos` | NFC + Unicode case-fold candidate for a case-insensitive destination | 255 UTF-8 bytes | 1023 UTF-8 bytes |
+| `export-fold` | Explicit pipeline below, independent of a real filesystem | 255 UTF-16 code units | 259 UTF-16 code units |
+
+The full path budget includes the supplied destination root, one separator, and the relative transformed path. A trailing separator on the root is counted once. Budgets exclude a terminating NUL. `MaxComponent`/`--max-component` and `MaxPath`/`--max-path` override the profile defaults; `0` means the default. They do not auto-detect long-path support. Windows requires a fully qualified drive or UNC root; device and extended namespaces are unsupported. Other profiles allow an empty root to measure only the relative path.
+
+## Explicit export pipeline
+
+For each component, `export-fold` performs these steps in order:
+
+1. NFC normalization.
+2. Unicode default case folding with x/text.
+3. Replace Windows forbidden characters and ASCII control characters with `_`.
+4. Remove trailing ASCII spaces and dots.
+5. Truncate to the selected UTF-16 component budget without splitting a Unicode scalar.
+
+Treeport compares the resulting full paths **and every parent prefix**. It does not write transformed names. Reserved Windows device names, empty/dot components, and trailing dot/space reintroduced by truncation are incompatibilities; the pipeline is not a universally safe sanitizer. Truncation is intentionally a final stage, not a fixpoint sanitization routine.
+
+NFC is not NFKC: fullwidth `Ａ` and ASCII `A` remain distinct after folding, while precomposed and decomposed Hangul converge. An emoji outside the BMP uses two UTF-16 units. The pipeline is useful only if it matches the export contract being checked; rclone and other tools may use different transformations.
+
+## Known and unknown semantics
+
+`windows` diagnoses forbidden characters, trailing ASCII dot/space, and reserved devices including `COM¹`–`COM³` and `LPT¹`–`LPT³`, with extensions. Its ASCII case aliases are definite within the selected case-insensitive model. Non-ASCII comparison uses Unicode folding only to find candidates, returns `unknown`, and is not a claim about NTFS `$UpCase`, per-directory case flags, Win32 namespaces, network shares, or a particular Windows API. See Microsoft's [filename conventions](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) and [path-length documentation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation).
+
+`macos` models ASCII case-insensitive names and treats non-ASCII comparison as unknown. NFC/folding candidates do not implement APFS/HFS+ tables. Apple documents distinct case modes and versioned normalization behavior in its [archived APFS guide](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/APFS_Guide/FAQ/FAQ.html). A local filesystem probe verifies only the current test mount; it does not upgrade this profile into an exact APFS implementation.
+
+`posix` is a byte-sensitive lexical model with declared budgets, not a description of every Unix mount. Backslashes are rejected as unsafe manifest syntax even though some POSIX filesystems permit them as filename bytes. All profiles reject absolute paths, drive prefixes, NUL, empty components, and `.`/`..` segments. Explicit directory records may end with one `/`.
+
+Invalid UTF-8 is retained as raw bytes for `posix`. Unicode profiles report `invalid_utf8` as unknown. Symlinks are indexed by name but their target behavior is unknown. These uncertainties cannot be cleared by selecting a larger length budget.
+
+For normalization terminology see [Unicode Standard Annex #15](https://unicode.org/reports/tr15/). Profile behavior changes require a new profile version; schema changes are tracked separately.

@@ -1,0 +1,10 @@
+- id: treeport
+  name: treeport whole-tree portability preflight
+  description: Inspect the complete working tree, including implicit parent collisions.
+  entry: treeport scan
+  language: golang
+  pass_filenames: false
+  always_run: true
+  require_serial: true
+  args: [--profile, windows, --root, 'C:\checkout', .]
+

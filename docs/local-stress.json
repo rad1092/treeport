@@ -1,0 +1,10 @@
+{
+  "command": "TREEPORT_STRESS=1 go test -run TestMillionEntries -v .",
+  "go_version": "go1.27.1",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "stdout": "=== RUN   TestMillionEntries\n    check_test.go:133: STRESS entries=1000000 nodes=1001000 elapsed=1.194248208s total_alloc_delta_bytes=1020872104 heap_alloc_bytes=410267992 heap_sys_bytes=523567104\n--- PASS: TestMillionEntries (1.27s)\nPASS\n",
+  "stderr": "",
+  "exit_code": 0,
+  "max_rss_bytes": 545030144,
+  "note": "Standalone generated test binary executed; no million-entry fixture file retained. ru_maxrss bytes on Darwin. Timing is one observation, not a performance guarantee."
+}

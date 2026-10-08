@@ -1,0 +1,22 @@
+[
+  {"name":"ascii-parent-alias","profile":"windows","entries":[{"path":"Docs/one.txt"},{"path":"docs/two.txt"}],"status":"incompatible","causes":["case_fold","parent_alias"]},
+  {"name":"normalization-parent-alias","profile":"export-fold","entries":[{"path":"caf\u00e9/one.txt"},{"path":"cafe\u0301/two.txt"}],"status":"incompatible","causes":["unicode_normalization","parent_alias"]},
+  {"name":"composed-transformations","profile":"export-fold","entries":[{"path":"CAF\u00c9/a?b.txt"},{"path":"cafe\u0301/a*b.txt"}],"status":"incompatible","causes":["unicode_normalization","case_fold","character_replacement"]},
+  {"name":"replacement-collision","profile":"export-fold","entries":[{"path":"report?.txt"},{"path":"report*.txt"}],"status":"incompatible","causes":["character_replacement"]},
+  {"name":"truncation-collision","profile":"export-fold","max_component":8,"entries":[{"path":"abcdefgh-one"},{"path":"abcdefgh-two"}],"status":"incompatible","causes":["truncation"]},
+  {"name":"emoji-utf16-truncation","profile":"export-fold","max_component":4,"entries":[{"path":"😀😀A"},{"path":"😀😀B"}],"status":"incompatible","causes":["truncation"]},
+  {"name":"file-parent-obstruction","profile":"windows","entries":[{"path":"Readme","kind":"file"},{"path":"README/chapter.txt","kind":"file"}],"status":"incompatible","causes":["case_fold","file_directory"]},
+  {"name":"duplicate-file-entry","profile":"posix","entries":[{"path":"same.txt"},{"path":"same.txt"}],"status":"incompatible","causes":["duplicate_entry"]},
+  {"name":"explicit-file-directory","profile":"posix","entries":[{"path":"same","kind":"file"},{"path":"same","kind":"directory"}],"status":"incompatible","causes":["file_directory"]},
+  {"name":"trailing-dot-space-alias","profile":"windows","entries":[{"path":"report.txt"},{"path":"report.txt. "}],"status":"incompatible","issues":["trailing_dot_space"],"causes":["trailing_dot_space"]},
+  {"name":"superscript-device-name","profile":"windows","entries":[{"path":"COM¹.txt"},{"path":"LPT².log"}],"status":"incompatible","issues":["reserved_name"]},
+  {"name":"windows-root-budget","profile":"windows","destination_root":"C:\\export\\release","max_path":25,"entries":[{"path":"한국어/😀.txt"}],"status":"incompatible","issues":["path_budget"]},
+  {"name":"emoji-utf16-component-budget","profile":"windows","max_component":4,"entries":[{"path":"😀😀x"}],"status":"incompatible","issues":["component_budget"]},
+  {"name":"invalid-byte-posix","profile":"posix","entries":[{"path_base64":"/2E="}],"status":"known-compatible","no_conflicts":true},
+  {"name":"invalid-byte-windows","profile":"windows","entries":[{"path_base64":"/2E="}],"status":"unknown","issues":["invalid_utf8"]},
+  {"name":"archive-parent-traversal","profile":"posix","entries":[{"path":"../escape"}],"status":"incompatible","issues":["unsafe_path"]},
+  {"name":"archive-absolute-path","profile":"posix","entries":[{"path":"/absolute"}],"status":"incompatible","issues":["unsafe_path"]},
+  {"name":"nfc-not-compatibility-fold","profile":"export-fold","entries":[{"path":"Ａ.txt"},{"path":"A.txt"}],"status":"known-compatible","no_conflicts":true},
+  {"name":"korean-canonical-equivalence","profile":"export-fold","entries":[{"path":"한글.txt"},{"path":"한글.txt"}],"status":"incompatible","causes":["unicode_normalization"]},
+  {"name":"non-ascii-windows-candidate","profile":"windows","entries":[{"path":"Straße.txt"},{"path":"STRASSE.txt"}],"status":"unknown","causes":["case_fold"]}
+]
