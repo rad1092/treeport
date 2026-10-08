@@ -1,0 +1,2 @@
+# Preserve upstream disclosure bytes, including their original trailing blank lines.
+third_party/** -text whitespace=-blank-at-eof

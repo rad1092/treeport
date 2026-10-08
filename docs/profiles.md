@@ -1,6 +1,6 @@
 # Versioned destination profiles
 
-A profile is a reproducible model selected by the caller. Treeport does not discover the destination filesystem. Each JSON report includes `profile`, `profile_version`, and `unicode_version`; Unicode normalization and folding reuse `golang.org/x/text` rather than a custom Unicode table. Version 0.1.2 pins x/text v0.28.0, using Unicode 15.0.0 and reporting the normalization table version at runtime.
+A profile is a reproducible model selected by the caller. Treeport does not discover the destination filesystem. Each JSON report includes `profile`, `profile_version`, and `unicode_version`; Unicode normalization and folding reuse `golang.org/x/text` rather than a custom Unicode table. Version 0.1.3 pins x/text v0.28.0, using Unicode 15.0.0 and reporting the normalization table version at runtime.
 
 | Profile | Comparison / transformation | Component default | Full path default |
 | --- | --- | --- | --- |

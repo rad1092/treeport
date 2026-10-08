@@ -18,6 +18,8 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"time"
@@ -44,13 +46,20 @@ type payload struct {
 }
 
 func build(ctx context.Context, out, targetList string) error {
+	disclosure, err := loadDisclosures(".")
+	if err != nil {
+		return err
+	}
+	if runtime.Version() != disclosure.Manifest.GoVersion {
+		return fmt.Errorf("release toolchain %s differs from disclosed %s", runtime.Version(), disclosure.Manifest.GoVersion)
+	}
 	goCmd, err := exec.LookPath("go")
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(out, 0755); err != nil {
-		return err
-	}
+	// Ignore ambient workspaces, alternate module files and automatic toolchain
+	// switching. Every release is checked against this checkout and manifest.
+	goEnvironment := append(os.Environ(), "GOWORK=off", "GOFLAGS=", "GOTOOLCHAIN=local")
 	tmp, err := os.MkdirTemp("", "treeport-release-")
 	if err != nil {
 		return err
@@ -68,8 +77,37 @@ func build(ctx context.Context, out, targetList string) error {
 	if err != nil {
 		return fmt.Errorf("git commit: %w", err)
 	}
-	goVersion, err := exec.CommandContext(ctx, goCmd, "version").Output()
+	commit := strings.TrimSpace(string(commitBytes))
+	builder, ok := debug.ReadBuildInfo()
+	if !ok || builder.Main.Path != mainModulePath || builder.Main.Version == "" {
+		return fmt.Errorf("release builder has no main module identity")
+	}
+	builderSettings := make(map[string]string)
+	for _, setting := range builder.Settings {
+		builderSettings[setting.Key] = setting.Value
+	}
+	if builderSettings["vcs.revision"] != commit || builderSettings["vcs.modified"] != "false" {
+		return fmt.Errorf("release builder must be built from this exact clean Git commit; use go run -buildvcs=true ./scripts/release")
+	}
+	toolchain := exec.CommandContext(ctx, goCmd, "env", "GOVERSION")
+	toolchain.Env = goEnvironment
+	goVersion, err := toolchain.Output()
 	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(string(goVersion)) != disclosure.Manifest.GoVersion {
+		return fmt.Errorf("go executable differs from disclosed toolchain %s", disclosure.Manifest.GoVersion)
+	}
+	moduleCommand := exec.CommandContext(ctx, goCmd, "mod", "edit", "-json")
+	moduleCommand.Env = goEnvironment
+	moduleJSON, err := moduleCommand.Output()
+	if err != nil {
+		return fmt.Errorf("read module identity: %w", err)
+	}
+	if err := verifyModuleFile(bytes.NewReader(moduleJSON), disclosure.Manifest.Modules); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(out, 0755); err != nil {
 		return err
 	}
 	targets := strings.Split(targetList, ",")
@@ -88,24 +126,30 @@ func build(ctx context.Context, out, targetList string) error {
 			name += ".exe"
 		}
 		binary := filepath.Join(tmp, name)
-		cmd := exec.CommandContext(ctx, goCmd, "build", "-trimpath", "-ldflags=-s -w -buildid=", "-o", binary, "./cmd/treeport")
-		cmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOOS="+goos, "GOARCH="+arch)
+		cmd := exec.CommandContext(ctx, goCmd, "build", "-mod=readonly", "-buildvcs=true", "-trimpath", "-ldflags=-s -w -buildid=", "-o", binary, "./cmd/treeport")
+		cmd.Env = append(goEnvironment, "CGO_ENABLED=0", "GOOS="+goos, "GOARCH="+arch)
 		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("build %s: %w", target, err)
+		}
+		identity := binaryIdentity{disclosure.Manifest.GoVersion, builder.Main.Version, commit, goos, arch, disclosure.Manifest.Modules}
+		info, err := verifyBinary(binary, identity)
+		if err != nil {
+			return fmt.Errorf("verify %s: %w", target, err)
 		}
 		data, err := os.ReadFile(binary)
 		if err != nil {
 			return err
 		}
 		meta, err := json.MarshalIndent(map[string]string{
-			"version": treeport.Version, "commit": strings.TrimSpace(string(commitBytes)),
-			"go_version": strings.TrimSpace(string(goVersion)), "target": target,
+			"version": treeport.Version, "commit": commit,
+			"go_version": info.GoVersion, "target": target,
+			"main_module_version": info.Main.Version, "disclosure_manifest_sha256": disclosure.Hash,
 		}, "", "  ")
 		if err != nil {
 			return err
 		}
-		files := []payload{{"LICENSE", license, 0644}, {"README.md", readme, 0644}, {"build.json", append(meta, '\n'), 0644}, {name, data, 0755}}
+		files := archiveFiles(name, data, license, readme, append(meta, '\n'), disclosure)
 		var archive bytes.Buffer
 		ext := ".tar.gz"
 		if goos == "windows" {
@@ -126,6 +170,11 @@ func build(ctx context.Context, out, targetList string) error {
 		fmt.Println(filename)
 	}
 	return writeNew(filepath.Join(out, "SHA256SUMS"), sums.Bytes())
+}
+
+func archiveFiles(binaryName string, binary, license, readme, metadata []byte, disclosure disclosures) []payload {
+	files := []payload{{"LICENSE", license, 0644}, {"README.md", readme, 0644}, {"build.json", metadata, 0644}, {binaryName, binary, 0755}}
+	return append(files, disclosure.Files...)
 }
 
 func supported(goos, arch string) bool {

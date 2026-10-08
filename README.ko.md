@@ -11,7 +11,7 @@
 [Releases](https://github.com/rad1092/treeport/releases)에서 운영체제에 맞는 실행 파일과 체크섬을 받거나 Go 1.25 이상으로 설치합니다.
 
 ```sh
-go install github.com/rad1092/treeport/cmd/treeport@v0.1.2
+go install github.com/rad1092/treeport/cmd/treeport@v0.1.3
 treeport scan --profile windows --root 'C:\export\release' ./dist
 treeport zip --profile windows --root 'C:\export\release' --json release.zip
 ```
@@ -45,3 +45,5 @@ CI에서는 모든 0 이외의 종료 코드를 실패로 처리할 수 있습�
 Go 프로그램은 [`Check`](docs/contract.md)를 호출해 같은 결과를 얻습니다. [실행 가능한 예제](examples/embed/main.go)와 [기존 도구의 고정 커밋 실행 결과](docs/comparison.md)를 참고하세요.
 
 파일 내용, 실제 목적지 파일, 권한, 링크 대상, 검사 중 경로 변경은 보장 범위가 아닙니다. 모든 환경에서의 이식성이나 ZIP 보안 검증을 보장하지 않습니다. 자세한 내용은 [한계](docs/limitations.md)와 [검증 범위](docs/verification.md)에 정리했습니다. [MIT 라이선스](LICENSE).
+
+소스와 바이너리 배포에는 [제3자 라이선스 및 고정된 출처](third_party/README.md)를 함께 제공합니다.

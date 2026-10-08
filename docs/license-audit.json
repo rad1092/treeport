@@ -1,0 +1,285 @@
+{
+  "project_commit": "adc634d54e11e8a953407a2463e8c19726de3278",
+  "go_version": "go1.27.1",
+  "go_commit": "862c888e612ac346c7c4d99c9392bdfd265f33b0",
+  "x_text_version": "v0.28.0",
+  "x_text_commit": "425d715b4a85c7698cedf621412bb53794cbda53",
+  "method": "CGO_ENABLED=0 GOOS/GOARCH target go list -deps -json ./cmd/treeport; selected package source/asm/header closure is a conservative superset, not proof that each function survived linker dead-code elimination",
+  "targets": [
+    {
+      "target": "darwin/amd64",
+      "packages": 119,
+      "selected_files": 823
+    },
+    {
+      "target": "darwin/arm64",
+      "packages": 119,
+      "selected_files": 818
+    },
+    {
+      "target": "linux/amd64",
+      "packages": 121,
+      "selected_files": 844
+    },
+    {
+      "target": "linux/arm64",
+      "packages": 121,
+      "selected_files": 838
+    },
+    {
+      "target": "windows/amd64",
+      "packages": 123,
+      "selected_files": 783
+    },
+    {
+      "target": "windows/arm64",
+      "packages": 123,
+      "selected_files": 777
+    }
+  ],
+  "union_packages": 126,
+  "union_selected_files": 1091,
+  "project_commit_note": "Audit input before v0.1.3 packaging-only changes; runtime product code unchanged.",
+  "excerpts": [
+    {
+      "category": "upstream copyright and permission",
+      "excerpt_file": "inferno-memmove-amd64.txt",
+      "excerpt_sha256": "115b35d4c33d49499560fed05811e006e92db5c1416c6ac0f417753b416d5449",
+      "source_path": "src/runtime/memmove_amd64.s",
+      "start_line": 1,
+      "end_line": 24,
+      "source_sha256": "1d239c1a965baf43cbdfb82a5144d33aadd95d20ff95becf8347a93ddf08985d",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/runtime/memmove_amd64.s",
+      "selected_targets": [
+        "darwin/amd64",
+        "linux/amd64",
+        "windows/amd64"
+      ]
+    },
+    {
+      "category": "upstream copyright and permission",
+      "excerpt_file": "fdlibm-sun-1993.txt",
+      "excerpt_sha256": "f301cd665c42a9203d6385ca288f0d2b51abb8155063558b14a75e482501f684",
+      "source_path": "src/math/acosh.go",
+      "start_line": 12,
+      "end_line": 19,
+      "source_sha256": "e1b20885bef3ccb7763ae868d23120194cf38faef70f1af45d2870ccb1a00140",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/acosh.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "upstream copyright and permission",
+      "excerpt_file": "cephes-moshier.txt",
+      "excerpt_sha256": "dcf382b0efb2735ac2a64e0e0a3c98b99d95e059979965aee4f6bddf553a7b7f",
+      "source_path": "src/math/atan.go",
+      "start_line": 36,
+      "end_line": 52,
+      "source_sha256": "777b61ebf72d42b754004fe6a5e9a4ac7fb85fb95cd5e6fef396540ce6c42ee1",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/atan.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "upstream copyright and permission",
+      "excerpt_file": "fdlibm-sun-1993-773323f4.txt",
+      "excerpt_sha256": "773323f4b12573d59e6a6cbd9a967b4613f39fc2bb699b477041c808f1503bc1",
+      "source_path": "src/math/cbrt.go",
+      "start_line": 10,
+      "end_line": 17,
+      "source_sha256": "de08f8225477bd143bd5318c5f46b7e26bdb008db8e4d174c6130e751e66e335",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/cbrt.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "upstream copyright and permission",
+      "excerpt_file": "fdlibm-sun-2004.txt",
+      "excerpt_sha256": "0386866357bd2a404977ca365e17d5ba8ab27650f6e5fdffe5348d9380ff1874",
+      "source_path": "src/math/exp.go",
+      "start_line": 28,
+      "end_line": 34,
+      "source_sha256": "75d415ac8eca1afc796cd621b393153ff82d342c24f5b391dfdd6a6e70303f2b",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/exp.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "upstream public-domain provenance and disclaimer",
+      "excerpt_file": "rijndael-reference.txt",
+      "excerpt_sha256": "392d5f660dac056fdb61b71bf106cc7c03dc249e6673bd08b6df8f2c34415e9a",
+      "source_path": "src/crypto/internal/fips140/aes/aes_generic.go",
+      "start_line": 5,
+      "end_line": 30,
+      "source_sha256": "a33d0a61c315c185f168987c7a2f4035d78b1059e9981cf750b7bdf15f91af08",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/crypto/internal/fips140/aes/aes_generic.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "upstream public-domain provenance",
+      "excerpt_file": "sleef-shibata.txt",
+      "excerpt_sha256": "39560d76c96a55aa9694eb537a24eccb1d2d8f6b338c5498d5a09bd06e8fba8b",
+      "source_path": "src/math/exp_amd64.s",
+      "start_line": 7,
+      "end_line": 18,
+      "source_sha256": "6b0b9ca5b73d27e457fa3ce283dec9fdbc8411ac3b28afe262059330c32e9980",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/exp_amd64.s",
+      "selected_targets": [
+        "darwin/amd64",
+        "linux/amd64",
+        "windows/amd64"
+      ]
+    },
+    {
+      "category": "source attribution only; no separate license declared here",
+      "excerpt_file": "sha512-arm64-ard-biesheuvel.txt",
+      "excerpt_sha256": "817e6b694362a363ee78c267052fd5dc9b4cefbaa684817ca602d805ab9e16c4",
+      "source_path": "src/crypto/internal/fips140/sha512/sha512block_arm64.s",
+      "start_line": 7,
+      "end_line": 9,
+      "source_sha256": "e8fe022552851cd595b76c7ae76ea9e0d386a7490f7a815813d46837b0d4bb7c",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/crypto/internal/fips140/sha512/sha512block_arm64.s",
+      "selected_targets": [
+        "darwin/arm64",
+        "linux/arm64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "source attribution only; no separate license declared here",
+      "excerpt_file": "keccak-reference.txt",
+      "excerpt_sha256": "464b4ce12417860360392f8b021e8eedd01e5b0fb14452e922786187869dacdb",
+      "source_path": "src/crypto/internal/fips140/sha3/keccakf.go",
+      "start_line": 59,
+      "end_line": 60,
+      "source_sha256": "4bb1be9fa0904272790ad452bafb18d4fb8adfb14075555692a3415ca7391c4e",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/crypto/internal/fips140/sha3/keccakf.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "source attribution only; no separate license declared here",
+      "excerpt_file": "tcmalloc-provenance.txt",
+      "excerpt_sha256": "23469d3a3d1e01d7aeb27deaa7491661599a0e54fbc5c952fb66bfa3d6eecd83",
+      "source_path": "src/runtime/malloc.go",
+      "start_line": 5,
+      "end_line": 8,
+      "source_sha256": "69e2dc64c34699e7fb8dcaae3eafd396834f42755ef3ad0b1e287ae43198bcea",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/runtime/malloc.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "generated-data provenance only; no separate license declared here",
+      "excerpt_file": "cldr-windows-zones.txt",
+      "excerpt_sha256": "375791ec1569987c168a1bd476b37ea998efea331a26aafc18d386f80233272d",
+      "source_path": "src/time/zoneinfo_abbrs_windows.go",
+      "start_line": 5,
+      "end_line": 6,
+      "source_sha256": "fdabcbf35b6e9613c7e12bc44a10701cabf08c1760aef7be07f58609dfb89ead",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/time/zoneinfo_abbrs_windows.go",
+      "selected_targets": [
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "algorithm attribution only; no separate license declared here",
+      "excerpt_file": "pdqsort-provenance.txt",
+      "excerpt_sha256": "99519122ce92b9bc584bb74614d40f964fcfa7266e9c2b3c69a69813f1a79088",
+      "source_path": "src/slices/zsortanyfunc.go",
+      "start_line": 56,
+      "end_line": 59,
+      "source_sha256": "50398783e085ac9cc1d7c6249ebe75a5cc4425dcdc6a4cc448ea6e7179126492",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/slices/zsortanyfunc.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "algorithm attribution only; softfloat implementation unreferenced on these hardware targets",
+      "excerpt_file": "hackers-delight-provenance.txt",
+      "excerpt_sha256": "dddccfe5cbfc97c1ae9ea91e2e9f47cb31cb885d40b6eb9cdae4944e09f1f462",
+      "source_path": "src/runtime/softfloat64.go",
+      "start_line": 443,
+      "end_line": 443,
+      "source_sha256": "647b9366905a529ac7cb4d65c4289c7d9ef61021d2be888717988111e83c72d0",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/runtime/softfloat64.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    },
+    {
+      "category": "algorithm attribution only; softfloat implementation unreferenced on these hardware targets",
+      "excerpt_file": "hackers-delight-provenance-64427169.txt",
+      "excerpt_sha256": "6442716935091c281e9d627df8bd6e35d04acd34acfb935d48738c11ce71e0f8",
+      "source_path": "src/runtime/softfloat64.go",
+      "start_line": 462,
+      "end_line": 462,
+      "source_sha256": "647b9366905a529ac7cb4d65c4289c7d9ef61021d2be888717988111e83c72d0",
+      "source_url": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/runtime/softfloat64.go",
+      "selected_targets": [
+        "darwin/amd64",
+        "darwin/arm64",
+        "linux/amd64",
+        "linux/arm64",
+        "windows/amd64",
+        "windows/arm64"
+      ]
+    }
+  ],
+  "source_verification": "All excerpt source files byte-verified against pinned upstream commit."
+}

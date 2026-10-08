@@ -36,10 +36,14 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+    env:
+      GOTOOLCHAIN: local
+      GOWORK: 'off'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: '1.27.1'
@@ -48,8 +52,10 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: test "$(go run ./cmd/treeport version)" = "treeport ${RELEASE_TAG#v}"
-      - name: Build archives and checksums
-        run: go run ./scripts/release -out dist
+      - name: Verify disclosure packaging tests
+        run: go test -count=1 ./scripts/release
+      - name: Build verified binaries, disclosures, and checksums
+        run: go run -buildvcs=true ./scripts/release -out dist
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}

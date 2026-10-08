@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3 — 2026-10-08
+
+- Include pinned upstream license and patent-grant texts for x/text and Go in source and all six binary archives, with source URLs and SHA-256 digests.
+- Preserve additional attribution texts from the Go runtime and standard library used by release targets.
+- Validate disclosure hashes, dependency/toolchain identities, and binary build metadata before packaging.
+- No changes to scanning, profile revisions, or the report schema.
+
 ## 0.1.2 — 2026-10-08
 
 - Preserve literal trailing backslashes in POSIX/macOS destination-root path budgets.

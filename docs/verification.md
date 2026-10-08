@@ -24,3 +24,12 @@ go run ./examples/embed
 ```
 
 The release builder and checksums support reproducible inspection of packaged binary targets. Download the archive appropriate to the actual host, verify `SHA256SUMS`, run `treeport version`, and run one compatible and one incompatible manifest against that installed binary. Record the commit that produced the artifact alongside CI evidence.
+
+Starting with v0.1.3, release checks also verify the complete `third_party`
+inventory, upstream-text hashes, exact module/toolchain identities, clean commit,
+and each executable's embedded build metadata. Both archive formats have tests
+for disclosure preservation and rejection of missing or modified texts. See
+[the disclosure inventory](../third_party/README.md) and the compact
+[source audit](license-audit.json). Download verification checks the archive
+checksum, disclosure bytes, manifest digest in `build.json`, and the executable's
+commit, version, target, Go version, and linked x/text version.

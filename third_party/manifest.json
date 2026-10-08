@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "go_version": "go1.27.1",
+  "modules": {
+    "golang.org/x/text": "v0.28.0"
+  },
+  "files": [
+    {
+      "path": "third_party/go/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "source": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/LICENSE"
+    },
+    {
+      "path": "third_party/go/PATENTS",
+      "sha256": "96f408bfae65bf137fc2525d3ecb030271c50c1e90799f87abf8846d8dd505cc",
+      "source": "https://raw.githubusercontent.com/golang/go/862c888e612ac346c7c4d99c9392bdfd265f33b0/PATENTS"
+    },
+    {
+      "path": "third_party/go/attributions/cephes-moshier.txt",
+      "sha256": "dcf382b0efb2735ac2a64e0e0a3c98b99d95e059979965aee4f6bddf553a7b7f",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/atan.go#L36-L52"
+    },
+    {
+      "path": "third_party/go/attributions/cldr-windows-zones.txt",
+      "sha256": "375791ec1569987c168a1bd476b37ea998efea331a26aafc18d386f80233272d",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/time/zoneinfo_abbrs_windows.go#L5-L6"
+    },
+    {
+      "path": "third_party/go/attributions/fdlibm-sun-1993-773323f4.txt",
+      "sha256": "773323f4b12573d59e6a6cbd9a967b4613f39fc2bb699b477041c808f1503bc1",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/cbrt.go#L10-L17"
+    },
+    {
+      "path": "third_party/go/attributions/fdlibm-sun-1993.txt",
+      "sha256": "f301cd665c42a9203d6385ca288f0d2b51abb8155063558b14a75e482501f684",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/acosh.go#L12-L19"
+    },
+    {
+      "path": "third_party/go/attributions/fdlibm-sun-2004.txt",
+      "sha256": "0386866357bd2a404977ca365e17d5ba8ab27650f6e5fdffe5348d9380ff1874",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/exp.go#L28-L34"
+    },
+    {
+      "path": "third_party/go/attributions/hackers-delight-provenance-64427169.txt",
+      "sha256": "6442716935091c281e9d627df8bd6e35d04acd34acfb935d48738c11ce71e0f8",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/runtime/softfloat64.go#L462-L462"
+    },
+    {
+      "path": "third_party/go/attributions/hackers-delight-provenance.txt",
+      "sha256": "dddccfe5cbfc97c1ae9ea91e2e9f47cb31cb885d40b6eb9cdae4944e09f1f462",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/runtime/softfloat64.go#L443-L443"
+    },
+    {
+      "path": "third_party/go/attributions/inferno-memmove-amd64.txt",
+      "sha256": "115b35d4c33d49499560fed05811e006e92db5c1416c6ac0f417753b416d5449",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/runtime/memmove_amd64.s#L1-L24"
+    },
+    {
+      "path": "third_party/go/attributions/keccak-reference.txt",
+      "sha256": "464b4ce12417860360392f8b021e8eedd01e5b0fb14452e922786187869dacdb",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/crypto/internal/fips140/sha3/keccakf.go#L59-L60"
+    },
+    {
+      "path": "third_party/go/attributions/pdqsort-provenance.txt",
+      "sha256": "99519122ce92b9bc584bb74614d40f964fcfa7266e9c2b3c69a69813f1a79088",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/slices/zsortanyfunc.go#L56-L59"
+    },
+    {
+      "path": "third_party/go/attributions/rijndael-reference.txt",
+      "sha256": "392d5f660dac056fdb61b71bf106cc7c03dc249e6673bd08b6df8f2c34415e9a",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/crypto/internal/fips140/aes/aes_generic.go#L5-L30"
+    },
+    {
+      "path": "third_party/go/attributions/sha512-arm64-ard-biesheuvel.txt",
+      "sha256": "817e6b694362a363ee78c267052fd5dc9b4cefbaa684817ca602d805ab9e16c4",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/crypto/internal/fips140/sha512/sha512block_arm64.s#L7-L9"
+    },
+    {
+      "path": "third_party/go/attributions/sleef-shibata.txt",
+      "sha256": "39560d76c96a55aa9694eb537a24eccb1d2d8f6b338c5498d5a09bd06e8fba8b",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/math/exp_amd64.s#L7-L18"
+    },
+    {
+      "path": "third_party/go/attributions/tcmalloc-provenance.txt",
+      "sha256": "23469d3a3d1e01d7aeb27deaa7491661599a0e54fbc5c952fb66bfa3d6eecd83",
+      "source": "https://github.com/golang/go/blob/862c888e612ac346c7c4d99c9392bdfd265f33b0/src/runtime/malloc.go#L5-L8"
+    },
+    {
+      "path": "third_party/golang.org-x-text/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "source": "https://raw.githubusercontent.com/golang/text/425d715b4a85c7698cedf621412bb53794cbda53/LICENSE"
+    },
+    {
+      "path": "third_party/golang.org-x-text/PATENTS",
+      "sha256": "96f408bfae65bf137fc2525d3ecb030271c50c1e90799f87abf8846d8dd505cc",
+      "source": "https://raw.githubusercontent.com/golang/text/425d715b4a85c7698cedf621412bb53794cbda53/PATENTS"
+    },
+    {
+      "path": "third_party/unicode/cldr32-unicode-license.txt",
+      "source": "https://raw.githubusercontent.com/unicode-org/cldr/5dfac9269ed58eeaeddd6ca887bdc7eb43a481fd/unicode-license.txt",
+      "sha256": "6a6976a5da6ac21a6a001c685c057f4a6e619be11f5465371088ecd80c7fbe06"
+    },
+    {
+      "path": "third_party/unicode/unicode-1991-2022-icu72-section.txt",
+      "source": "https://github.com/unicode-org/icu/blob/ff3514f257ea10afe7e710e9f946f68d256704b1/icu4c/LICENSE#L1-L47",
+      "sha256": "b224ef53e5506205cb56f1c037f6337a331e9e47af2e99ae8ca65720f34e07d7"
+    },
+    {
+      "path": "third_party/unicode/unicode-current-license.txt",
+      "source": "https://www.unicode.org/license.txt",
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    }
+  ]
+}

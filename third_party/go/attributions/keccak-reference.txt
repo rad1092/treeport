@@ -1,0 +1,2 @@
+	// Implementation translated from Keccak-inplace.c
+	// in the keccak reference code.
