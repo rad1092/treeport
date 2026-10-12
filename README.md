@@ -37,6 +37,13 @@ printf '%s\n' '{"path":"CAFÉ/a?b.txt"}' '{"path":"cafe\u0301/a*b.txt"}' |
 
 This exits `1` and reports both the parent alias and the full-path collision. Use `--max-component` and `--max-path` to match an export pipeline's explicit budgets; profile defaults and units are [documented](docs/profiles.md).
 
+For a known-good first check, replace the manifest with
+`{"path":"reports/week-42.csv"}` and use the same command: expect exit `0` and
+`status: "known-compatible"`. [A complete first-run example](docs/first-run.md)
+covers passing and failing reports, Windows paths, and common installation errors.
+The public Go API is already indexed on
+[pkg.go.dev](https://pkg.go.dev/github.com/rad1092/treeport).
+
 | Exit | Meaning |
 | --- | --- |
 | `0` | Known compatible with the selected model |
