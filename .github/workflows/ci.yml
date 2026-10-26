@@ -44,9 +44,9 @@ jobs:
       - name: Timed deterministic analysis fuzzing
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.27.1'
         run: go test -run='^$' -fuzz=FuzzCheckDeterministic -fuzztime=5s .
-      - name: Check this checkout as a destination tree
+      - name: Check this repository's names as a Windows clone
         shell: bash
-        run: go run ./cmd/treeport scan --profile windows --root 'C:\checkout' --json . > "$RUNNER_TEMP/treeport-report.json"
+        run: go run ./cmd/treeport git --profile windows --root 'C:\checkout' --json . > "$RUNNER_TEMP/treeport-report.json"
       - name: Preserve machine-readable portability report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -55,3 +55,21 @@ jobs:
           path: ${{ runner.temp }}/treeport-report.json
           if-no-files-found: ignore
           retention-days: 14
+
+  action:
+    name: Composite action
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - id: names
+        uses: ./
+        with:
+          profile: windows
+          root: 'C:\checkout'
+      - name: The action reports a status
+        env:
+          STATUS: ${{ steps.names.outputs.status }}
+        run: test -n "$STATUS"

@@ -7,15 +7,16 @@ Whole-tree checks need the complete export tree or manifest. A changed-file-only
 ```yaml
 repos:
   - repo: https://github.com/rad1092/treeport
-    rev: v0.1.3
+    rev: v0.2.0
     hooks:
       - id: treeport
-        args: [--profile, windows, --root, 'C:\checkout', .]
+        # The default is a Windows clone at C:\checkout. Any profile works:
+        args: [--profile, windows, --root, 'C:\src\project']
 ```
 
-This scans working-tree names, including untracked and ignored files. Build/export into a dedicated folder and change the last argument when that is your release boundary. Git's index can represent names the current working tree cannot; use a generated JSONL manifest when the index or an archive is your authoritative input.
+The hook runs `treeport git`, which checks every name in the Git index: the names a clone creates, including files staged in this commit, without untracked or ignored files. It ignores the pre-commit changed-file list on purpose, because a new name can collide with an unchanged one.
 
-For an already installed binary, a local hook can use:
+To check a build folder with an installed binary instead:
 
 ```yaml
 repos:
@@ -32,30 +33,35 @@ repos:
 ## GitHub Actions
 
 ```yaml
-name: Destination filenames
+name: File names
 on: [push, pull_request]
 permissions:
   contents: read
 jobs:
-  preflight:
+  names:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: rad1092/treeport@v0.2.0
+        with:
+          profile: windows
+          root: 'C:\src\project'
+```
+
+The action builds Treeport from the tagged source, runs `treeport git` on the checkout, writes the result to the job summary, and exposes `status`, `likely` and `report` (the JSON path) as outputs. Set `command: scan` and `input: dist` to check a build folder, or `command: zip` and `input: release.zip`. `strict: true` fails on every unknown result.
+
+Without the action:
+
+```yaml
       - uses: actions/setup-go@v5
         with:
           go-version: '1.25.x'
-      - run: go install github.com/rad1092/treeport/cmd/treeport@v0.1.3
-      # Create dist here, then check its destination namespace.
+      - run: go install github.com/rad1092/treeport/cmd/treeport@v0.2.0
       - name: Check export
         run: treeport scan --profile windows --root 'C:\release' --json ./dist > treeport-report.json
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: treeport-report
-          path: treeport-report.json
 ```
 
-The command fails the job on incompatible (`1`), error (`2`), or unknown (`3`). Keep that distinction in a wrapper if your policy routes unknown results to review. Do not turn all nonzero exits into success. Pin third-party actions and Treeport to your organization's approved immutable revisions for controlled builds.
+The command fails the job on incompatible (`1`), error (`2`), or an unknown result Treeport cannot read either way (`3`). Unknown results that very likely pass exit `0`; add `--strict` if your policy routes every unknown result to review. Do not turn all nonzero exits into success. Pin third-party actions and Treeport to your organization's approved immutable revisions for controlled builds.
 
 Scan the ZIP you will ship with `treeport zip … release.zip`, or stream your exporter manifest to `treeport manifest … -`. A source tree can be valid while the exporter changes names; select `export-fold` only when its [exact pipeline](profiles.md) matches your exporter.
 

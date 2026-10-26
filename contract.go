@@ -1,7 +1,7 @@
 // Package treeport checks complete destination trees without changing the source.
 package treeport
 
-const Version = "0.1.3"
+const Version = "0.2.0"
 const SchemaVersion = "1"
 
 type Entry struct {
@@ -39,6 +39,9 @@ type Issue struct {
 	Status string   `json:"status"`
 	Path   Original `json:"path"`
 	Detail string   `json:"detail"`
+	// Hint is a practical reading of an unknown result, such as whether two
+	// names very likely collide on the destination.
+	Hint string `json:"hint,omitempty"`
 }
 type Member struct {
 	Path      Original `json:"path"`
@@ -53,24 +56,30 @@ type Conflict struct {
 	Status  string   `json:"status"`
 	Causes  []string `json:"causes"`
 	Members []Member `json:"members"`
+	Hint    string   `json:"hint,omitempty"`
 }
 type Report struct {
-	SchemaVersion   string     `json:"schema_version"`
-	ToolVersion     string     `json:"tool_version"`
-	Profile         string     `json:"profile"`
-	ComponentBudget int        `json:"component_budget"`
-	PathBudget      int        `json:"path_budget"`
-	LengthUnit      string     `json:"length_unit"`
-	ProfileVersion  string     `json:"profile_version"`
-	UnicodeVersion  string     `json:"unicode_version"`
-	DestinationRoot string     `json:"destination_root"`
-	Status          string     `json:"status"`
-	Complete        bool       `json:"complete"`
-	EntryCount      int        `json:"entry_count"`
-	NodeCount       int        `json:"node_count"`
-	Issues          []Issue    `json:"issues"`
-	Conflicts       []Conflict `json:"conflicts"`
-	Limitations     []string   `json:"limitations"`
+	SchemaVersion   string `json:"schema_version"`
+	ToolVersion     string `json:"tool_version"`
+	Profile         string `json:"profile"`
+	ComponentBudget int    `json:"component_budget"`
+	PathBudget      int    `json:"path_budget"`
+	LengthUnit      string `json:"length_unit"`
+	ProfileVersion  string `json:"profile_version"`
+	UnicodeVersion  string `json:"unicode_version"`
+	DestinationRoot string `json:"destination_root"`
+	Status          string `json:"status"`
+	// Likely is set when Status is unknown: "compatible" or "incompatible"
+	// when the hints point one way, empty when Treeport cannot tell.
+	Likely     string  `json:"likely,omitempty"`
+	Complete   bool    `json:"complete"`
+	EntryCount int     `json:"entry_count"`
+	NodeCount  int     `json:"node_count"`
+	Issues     []Issue `json:"issues"`
+	// Warnings never change Status. nfd_name flags decomposed Unicode names.
+	Warnings    []Issue    `json:"warnings"`
+	Conflicts   []Conflict `json:"conflicts"`
+	Limitations []string   `json:"limitations"`
 }
 
 // Profiles: posix, windows, macos, export-fold. See versioned models in docs/profiles.md.

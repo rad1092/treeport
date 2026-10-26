@@ -56,22 +56,30 @@ Successful CLI analysis with `--json` writes one object to stdout:
 | `destination_root` | Caller-supplied root used for budget accounting |
 | `component_budget`, `path_budget`, `length_unit` | Effective budgets after overrides, and `bytes` or `utf16` |
 | `status` | `known-compatible`, `incompatible`, or `unknown` |
+| `likely` | Only for `unknown`: `compatible` or `incompatible` when the hints point one way; omitted when Treeport cannot tell (symlinks, invalid UTF-8, truncated reports) |
 | `complete` | Whether diagnostics were retained completely |
 | `entry_count`, `node_count` | Input records and indexed explicit/implicit nodes |
 | `issues` | Individual path diagnostics |
+| `warnings` | Diagnostics that never change `status`, currently `nfd_name` |
 | `conflicts` | Groups mapping onto one target path/prefix |
 | `limitations` | Explicit bounds on interpretation |
 
 A definite incompatibility takes precedence over uncertainty in the overall status. `complete:true` says the bounded input was processed without report truncation; it does not mean filesystem semantics are known. Conversely, an unknown result can be complete.
 
-Each issue has `code`, `status`, `path`, and `detail`. Codes include `reserved_name`, `forbidden_character`, `trailing_dot_space`, `component_budget`, `path_budget`, `invalid_utf8`, `unsafe_path`, `unknown_semantics`, `empty_component`, and `symlink`. Human-readable detail may evolve; branch on codes and status.
+Each issue has `code`, `status`, `path`, `detail`, and for unknown issues a `hint`. Codes include `reserved_name`, `forbidden_character`, `trailing_dot_space`, `component_budget`, `path_budget`, `invalid_utf8`, `unsafe_path`, `unknown_semantics`, `empty_component`, and `symlink`. Human-readable detail may evolve; branch on codes and status.
 
-Each conflict has `id`, `target`, `status`, `causes`, and `members`. Causes are additive: `case_fold`, `unicode_normalization`, `character_replacement`, `trailing_dot_space`, `truncation`, `parent_alias`, `duplicate_entry`, `file_directory`, and `entry_type` (different kinds sharing a destination). They record transformations participating in the group and can include transformations inherited from parents. They are not a minimal formal proof that every transformation was individually necessary.
+A warning has the same shape with `status:"warning"`. `nfd_name` marks a name in decomposed Unicode (NFD), as macOS often writes names into ZIP files and Git commits. It is reported for `posix`, `windows`, and `export-fold`, once per affected path, and not for `macos`, which writes NFD itself. On Windows such a name keeps its decomposed letters, so Korean shows as separate jamo and the name does not match the NFC spelling typed on the keyboard.
+
+`hint` reads an unknown result the way the destination most likely compares names. For `windows`, NTFS compares letter case one letter at a time, so names that match under simple case folding very likely collide, while names that match only under full folding (`ß` and `ss`) probably do not. For `macos`, default APFS ignores case and normalization. A non-ASCII name that no other name matches very likely works. Hints are guidance, not part of the model; `status` stays `unknown`.
+
+Each conflict has `id`, `target`, `status`, `causes`, `members`, and for unknown conflicts a `hint`. Causes are additive: `case_fold`, `unicode_normalization`, `character_replacement`, `trailing_dot_space`, `truncation`, `parent_alias`, `duplicate_entry`, `file_directory`, and `entry_type` (different kinds sharing a destination). They record transformations participating in the group and can include transformations inherited from parents. They are not a minimal formal proof that every transformation was individually necessary.
 
 A member contains `path`, `kind`, `implicit`, `count`, and `uncertain`. `implicit:true` denotes a synthesized parent with no explicit record; its count is `0`. Exact explicit duplicates are aggregated and preserve their multiplicity in `count`. Distinct original directory spellings such as `a` and `a/` are both retained. `uncertain:true` means that member depends on candidate Unicode filesystem semantics. An `incompatible` group contains a definite colliding pair; it may also contain additional uncertain candidates, which retain their member flag.
 
 Original paths use `{ "display": "…", "base64": "…" }`. **Decode `base64` for exact bytes.** `display` preserves valid Unicode spelling but replaces invalid UTF-8 for readable JSON. The transformed `target` is a display/comparison artifact, not a suggested rename or recoverable source path. Unicode models can still identify exact-byte duplicates of invalid-UTF-8 entries as definite conflicts; those group targets are marked `<undecodable>`. Valid parent prefixes before an invalid component are still checked. `treeport.OriginalPath` provides the same byte-preserving serialization for embedding clients.
 
 Issues, groups, and members have stable order for the same multiset of records. Group IDs remain stable under enumeration reversal; callers should scope stored IDs to tool/profile versions and not treat IDs as permanent global identifiers. Paths, kinds, and duplicate multiplicity contribute to group identity.
+
+The CLI exits `0` for `known-compatible`, `1` for `incompatible`, and for `unknown` follows `likely`: `0` when likely compatible, `1` when likely incompatible, `3` when Treeport cannot tell. `--strict` exits `3` for every unknown result.
 
 CLI errors with `--json` have a smaller envelope: `schema_version`, `tool_version`, `status:"error"`, and `error`. They exit `2` and are not analysis reports. Human output quotes path strings so control characters cannot become terminal instructions. All stdout write errors also fail the command.

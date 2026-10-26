@@ -2,28 +2,46 @@
 
 [한국어](README.ko.md) · [Profiles](docs/profiles.md) · [JSON/API contract](docs/contract.md) · [Measured comparison](docs/comparison.md)
 
-**Check a whole filename tree before exporting, packaging, or moving it.** Treeport is a Go library and standalone CLI that finds names that converge on the same destination, explains why they converge, and includes the destination root in path budgets. It reads directory names, JSONL manifests, or ZIP entry names. It never renames, copies, or extracts files.
+**Find the file names that will break on another operating system before you ship a ZIP, export a folder, or someone clones your repository on Windows.** Treeport reads a Git index, a folder, a ZIP or a JSONL list, and reports names that collide or are invalid on the destination you name: `README.md` next to `Readme.md`, `aux.c`, a trailing dot, a path over 260 characters, or a Korean name written in decomposed Unicode on a Mac. It never renames, copies, or extracts files.
 
 ```text
 CAFÉ/a?b.txt
-café/a*b.txt
+café/a*b.txt
        ↓ export-fold: NFC → case fold → replace → trim → truncate
 café/a_b.txt     collision: normalization + case + replacement
 ```
 
 The two parents also converge, even when their children have different names. Reports include those implicit parent conflicts, duplicate entries, file/directory obstructions, and exact original bytes.
 
-Use Treeport in export services, archive builders, artifact pipelines, and pre-commit checks. Choose a destination **model** explicitly: `posix`, `windows`, `macos`, or the precisely specified `export-fold` transformation pipeline. Results are `known-compatible`, `incompatible`, or `unknown`. The OS profiles do not certify arbitrary mounts; non-ASCII Windows/macOS semantics remain `unknown` where exact filesystem tables are unavailable.
+Choose a destination **model** explicitly: `posix`, `windows`, `macos`, or the precisely specified `export-fold` transformation pipeline. Results are `known-compatible`, `incompatible`, or `unknown`. Where exact Windows or macOS tables are unavailable for non-ASCII names, the result is `unknown` with a hint about what the destination most likely does.
 
 ## Install and run
 
 Download a binary and SHA-256 checksums from [Releases](https://github.com/rad1092/treeport/releases), or build with Go 1.25+:
 
 ```sh
-go install github.com/rad1092/treeport/cmd/treeport@v0.1.3
+go install github.com/rad1092/treeport/cmd/treeport@v0.2.0
 treeport version
+treeport git --profile windows --root 'C:\src\project'      # this repository, as a Windows clone
 treeport scan --profile windows --root 'C:\export\release' ./dist
 treeport zip --profile windows --root 'C:\export\release' --json release.zip
+```
+
+`treeport git` reads `git ls-files`, so it checks the names a clone creates, not whatever happens to be in your working tree. It is also available as a [pre-commit hook and a GitHub Action](docs/integrations.md):
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/rad1092/treeport
+    rev: v0.2.0
+    hooks:
+      - id: treeport
+
+# .github/workflows/names.yml, after actions/checkout
+      - uses: rad1092/treeport@v0.2.0
+        with:
+          profile: windows
+          root: 'C:\src\project'
 ```
 
 All flags precede the input path. `--root` means the future destination root, not the input directory. It must be an absolute drive or UNC path for `windows`; it need not exist on the machine running Treeport.
@@ -46,12 +64,12 @@ The public Go API is already indexed on
 
 | Exit | Meaning |
 | --- | --- |
-| `0` | Known compatible with the selected model |
-| `1` | At least one definite incompatibility |
+| `0` | Known compatible with the selected model, or unknown but very likely compatible |
+| `1` | At least one definite incompatibility, or unknown names that very likely collide |
 | `2` | Invalid arguments, unreadable/malformed input, limit exceeded, cancellation, or runtime error |
-| `3` | Uncertain semantics or symlink behavior; no definite incompatibility found |
+| `3` | Unknown and Treeport cannot tell which way (symlinks, invalid UTF-8, truncation) |
 
-A nonzero result should stop a strict CI gate. Inspect `complete` as well: diagnostic truncation is explicitly marked and never becomes a success. [CI and pre-commit examples](docs/integrations.md) retain JSON reports for diagnosis.
+`--strict` turns every unknown result into exit `3`, ignoring the likely verdict. The JSON `status` stays `unknown` either way and `likely` says which way the hints point. Inspect `complete` as well: diagnostic truncation is explicitly marked and never becomes a success. [CI and pre-commit examples](docs/integrations.md) retain JSON reports for diagnosis.
 
 ## Embed in Go
 

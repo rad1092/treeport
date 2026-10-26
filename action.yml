@@ -1,0 +1,88 @@
+name: Treeport
+description: Fail when file names would collide or be invalid on another operating system, before a clone or an export breaks there.
+author: rad1092
+branding:
+  icon: folder
+  color: green
+
+inputs:
+  command:
+    description: git (the repository's tracked names), scan (a folder), zip (a ZIP file) or manifest (a JSONL file).
+    required: false
+    default: git
+  input:
+    description: Repository, folder, ZIP or manifest to check.
+    required: false
+    default: "."
+  profile:
+    description: Destination model, posix, windows, macos or export-fold.
+    required: false
+    default: export-fold
+  root:
+    description: Destination root. Required for the windows profile, for example C:\src\project.
+    required: false
+    default: ""
+  strict:
+    description: Fail on every unknown result instead of following the likely verdict.
+    required: false
+    default: "false"
+
+outputs:
+  status:
+    description: known-compatible, incompatible or unknown.
+    value: ${{ steps.check.outputs.status }}
+  likely:
+    description: For unknown results, compatible or incompatible when Treeport can tell.
+    value: ${{ steps.check.outputs.likely }}
+  report:
+    description: Path to the JSON report.
+    value: ${{ steps.check.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      with:
+        go-version-file: ${{ github.action_path }}/go.mod
+        cache: false
+
+    - name: Build treeport
+      shell: bash
+      run: go build -C "$GITHUB_ACTION_PATH" -o "$RUNNER_TEMP/treeport-bin/treeport" ./cmd/treeport
+
+    - name: Check names
+      id: check
+      shell: bash
+      env:
+        COMMAND: ${{ inputs.command }}
+        INPUT: ${{ inputs.input }}
+        PROFILE: ${{ inputs.profile }}
+        ROOT: ${{ inputs.root }}
+        STRICT: ${{ inputs.strict }}
+      run: |
+        bin="$RUNNER_TEMP/treeport-bin/treeport"
+        report="$RUNNER_TEMP/treeport-report.json"
+        args=("$COMMAND" --profile "$PROFILE")
+        if [[ -n "$ROOT" ]]; then args+=(--root "$ROOT"); fi
+        if [[ "$STRICT" == "true" ]]; then args+=(--strict); fi
+
+        set +e
+        "$bin" "${args[@]}" "$INPUT"
+        code=$?
+        "$bin" "${args[@]}" --json "$INPUT" > "$report"
+        set -e
+
+        echo "report=$report" >> "$GITHUB_OUTPUT"
+        if jq -e .status "$report" > /dev/null 2>&1; then
+          echo "status=$(jq -r .status "$report")" >> "$GITHUB_OUTPUT"
+          echo "likely=$(jq -r '.likely // ""' "$report")" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Treeport: $(jq -r '.status + (if .likely then " (likely " + .likely + ")" else "" end)' "$report")"
+            echo
+            echo "Profile \`$PROFILE\`, $(jq -r .entry_count "$report") names."
+            jq -r '.issues[] | "- `\(.code)` \(.path.display): \(.detail)" + (if .hint then " \(.hint)" else "" end)' "$report"
+            jq -r '.conflicts[] | "- conflict: " + ([.members[].path.display] | join(", ")) + " → \(.target)" + (if .hint then " \(.hint)" else "" end)' "$report"
+            jq -r '.warnings[] | "- warning `\(.code)` \(.path.display): \(.detail)"' "$report"
+          } >> "$GITHUB_STEP_SUMMARY"
+        fi
+        exit "$code"

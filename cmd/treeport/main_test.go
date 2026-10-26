@@ -64,7 +64,10 @@ func TestCLIStatusAndErrorContract(t *testing.T) {
 	}{
 		{"compatible", `{"path":"src/main.go"}`, "known-compatible", []string{"manifest", "--json", "--profile", "posix", "-"}, 0},
 		{"incompatible", "{\"path\":\"Readme\"}\n{\"path\":\"README\"}", "incompatible", []string{"manifest", "--json", "--profile", "windows", "--root", `C:\dest`, "-"}, 1},
-		{"unknown", `{"path":"한글.txt"}`, "unknown", []string{"manifest", "--json", "--profile", "windows", "--root", `C:\dest`, "-"}, 3},
+		{"unknown but likely compatible", `{"path":"한글.txt"}`, "unknown", []string{"manifest", "--json", "--profile", "windows", "--root", `C:\dest`, "-"}, 0},
+		{"unknown in strict mode", `{"path":"한글.txt"}`, "unknown", []string{"manifest", "--json", "--strict", "--profile", "windows", "--root", `C:\dest`, "-"}, 3},
+		{"unknown but likely colliding", "{\"path\":\"Äpfel.txt\"}\n{\"path\":\"äpfel.txt\"}", "unknown", []string{"manifest", "--json", "--profile", "windows", "--root", `C:\dest`, "-"}, 1},
+		{"unknown symlink", `{"path":"link","kind":"symlink"}`, "unknown", []string{"manifest", "--json", "--profile", "posix", "-"}, 3},
 		{"missing profile", "", "error", []string{"manifest", "--json", "-"}, 2},
 		{"missing Windows root", "", "error", []string{"manifest", "--profile", "windows", "--json", "-"}, 2},
 		{"malformed manifest", "{", "error", []string{"manifest", "--json", "--profile", "posix", "-"}, 2},
@@ -217,5 +220,50 @@ func TestInstalledBinarySmoke(t *testing.T) {
 	}
 	if !strings.Contains(pipeOut.String(), "deadline exceeded") {
 		t.Fatalf("stalled stdin omitted deadline: %s", pipeOut.String())
+	}
+}
+
+func TestCLIGitChecksTheNamesACloneWillCreate(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git is not installed")
+	}
+	dir := t.TempDir()
+	runGit := func(args ...string) {
+		t.Helper()
+		cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v\n%s", args, err, out)
+		}
+	}
+	runGit("init", "-q")
+	runGit("config", "core.ignorecase", "false")
+	for _, name := range []string{"Readme.md", "README.md", "aux.c"} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	runGit("add", "-A")
+	var stdout, stderr bytes.Buffer
+	code := run(context.Background(), []string{"git", "--profile", "windows", "--root", `C:\src\repo`, dir}, nil, &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit %d: %s %s", code, stdout.String(), stderr.String())
+	}
+	for _, want := range []string{"reserved_name \"aux.c\"", "conflict", "\"README.md\""} {
+		if !strings.Contains(stdout.String(), want) {
+			t.Fatalf("output missing %q:\n%s", want, stdout.String())
+		}
+	}
+}
+
+func TestHumanOutputShowsLikelyVerdictAndHints(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := run(context.Background(), []string{"manifest", "--profile", "windows", "--root", `C:\dest`, "-"}, strings.NewReader("{\"path\":\"\u1112\u1161\u11ab.txt\"}"), &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit %d: %s", code, stderr.String())
+	}
+	for _, want := range []string{"unknown (likely compatible)", "hint: No other name", "[warning] nfd_name"} {
+		if !strings.Contains(stdout.String(), want) {
+			t.Fatalf("output missing %q:\n%s", want, stdout.String())
+		}
 	}
 }
