@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 — unreleased
+## 0.2.0 — 2026-10-26
 
 - New `treeport git` command reads the Git index (`git ls-files -z --stage`), so a repository can be checked for the names a clone on Windows or macOS will create. Symlinks and submodules keep their kind.
 - New `nfd_name` warning for names in decomposed Unicode (NFD), as macOS often writes them, under the posix, windows and export-fold profiles. Warnings are a new `warnings` array and never change `status`.
