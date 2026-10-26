@@ -5,9 +5,9 @@ moving a tree between filesystems. It tells you which names conflict under a
 chosen destination model. It does not rename files or extract archive contents.
 
 Install the binary for your architecture from
-[Releases](https://github.com/rad1092/treeport/releases/tag/v0.1.3) and verify its
+[Releases](https://github.com/rad1092/treeport/releases/tag/v0.2.0) and verify its
 archive against `SHA256SUMS`. Or use the pinned `go install` command in the README.
-`treeport version` should print `treeport 0.1.3`.
+`treeport version` should print `treeport 0.2.0`.
 
 ## A passing report, then a useful failure
 

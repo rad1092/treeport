@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -245,7 +246,7 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 	if err != nil {
 		return Report{}, err
 	}
-	report = Report{SchemaVersion: SchemaVersion, ToolVersion: Version, Profile: p.name, ProfileVersion: p.version, UnicodeVersion: norm.Version, DestinationRoot: opts.DestinationRoot, Status: "known-compatible", Complete: true, EntryCount: len(entries), Issues: []Issue{}, Conflicts: []Conflict{}, Limitations: []string{"Model-scoped filename preflight; not a universal portability or security guarantee.", "No destination mount inspection, permissions/content validation, hardlink identity or path race guarantee.", "Symlinks are not followed; existing destination contents are not scanned."}}
+	report = Report{SchemaVersion: SchemaVersion, ToolVersion: Version, Profile: p.name, ProfileVersion: p.version, UnicodeVersion: norm.Version, DestinationRoot: opts.DestinationRoot, Status: "known-compatible", Complete: true, EntryCount: len(entries), Issues: []Issue{}, Warnings: []Issue{}, Conflicts: []Conflict{}, Limitations: []string{"Model-scoped filename preflight; not a universal portability or security guarantee.", "No destination mount inspection, permissions/content validation, hardlink identity or path race guarantee.", "Symlinks are not followed; existing destination contents are not scanned."}}
 	report.ComponentBudget = p.component
 	report.PathBudget = p.path
 	report.LengthUnit = "bytes"
@@ -292,10 +293,18 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 			report.Status = "unknown"
 		}
 		if len(report.Issues) < lim.MaxIssues {
-			report.Issues = append(report.Issues, Issue{code, status, OriginalPath(path), detail})
+			report.Issues = append(report.Issues, Issue{Code: code, Status: status, Path: OriginalPath(path), Detail: detail})
 		} else {
 			truncated = true
 		}
+	}
+	warned := map[string]bool{}
+	addWarning := func(code, path, detail string) {
+		if warned[code+"\x00"+path] || len(report.Warnings) >= lim.MaxIssues {
+			return
+		}
+		warned[code+"\x00"+path] = true
+		report.Warnings = append(report.Warnings, Issue{Code: code, Status: "warning", Path: OriginalPath(path), Detail: detail})
 	}
 	// Copy only the entry descriptors. Sorting gives stable bounded diagnostics even
 	// when the input enumeration order changes or report limits are reached.
@@ -353,6 +362,9 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 				targetPrefix += "/"
 			}
 			sourcePrefix += original
+			if p.name != "macos" && utf8.ValidString(original) && !norm.NFC.IsNormalString(original) {
+				addWarning("nfd_name", sourcePrefix, nfdDetail(p.name, original))
+			}
 			if (p.name == "windows" || p.name == "macos") && !ascii(c) {
 				uncertain = true
 				addIssue("unknown_semantics", "unknown", e.Path, "non-ASCII comparison needs destination filesystem tables; candidate groups use Unicode "+norm.Version)
@@ -592,7 +604,7 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 				if strings.HasPrefix(displayTarget, "\x00") {
 					displayTarget = "<undecodable> " + displayTarget[1:]
 				}
-				report.Conflicts = append(report.Conflicts, Conflict{hex.EncodeToString(h.Sum(nil))[:16], displayTarget, status, names, members})
+				report.Conflicts = append(report.Conflicts, Conflict{ID: hex.EncodeToString(h.Sum(nil))[:16], Target: displayTarget, Status: status, Causes: names, Members: members})
 			} else {
 				truncated = true
 			}
@@ -622,6 +634,10 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 		}
 	}
 	report.Issues = out
+	sort.Slice(report.Warnings, func(i, j int) bool {
+		return report.Warnings[i].Path.Base64 < report.Warnings[j].Path.Base64
+	})
+	addHints(&report, p.name, truncated)
 	if truncated {
 		report.Complete = false
 		report.Limitations = append(report.Limitations, "Diagnostic budget reached; report is truncated.")
@@ -630,4 +646,101 @@ func Check(ctx context.Context, entries []Entry, opts Options) (report Report, r
 		}
 	}
 	return report, nil
+}
+
+func nfdDetail(profile, name string) string {
+	nfc := norm.NFC.String(name)
+	nfc = fmt.Sprintf("%s (%d code points instead of %d)", strconv.Quote(nfc), utf8.RuneCountInString(nfc), utf8.RuneCountInString(name))
+	switch profile {
+	case "export-fold":
+		return fmt.Sprintf("name is in decomposed Unicode (NFD), as macOS often writes it; this export model changes it to the NFC spelling %s", nfc)
+	case "windows":
+		return fmt.Sprintf("name is in decomposed Unicode (NFD), as macOS often writes it; Windows keeps it as is, so it shows letters split apart (Korean as separate jamo) and does not match the NFC spelling %s", nfc)
+	default:
+		return fmt.Sprintf("name is in decomposed Unicode (NFD), as macOS often writes it; POSIX systems keep it as is, so it does not match the NFC spelling %s", nfc)
+	}
+}
+
+// likelySame reads an uncertain conflict the way the destination most likely
+// compares names: NTFS by simple per-letter case, default APFS by case and
+// normalization.
+func likelySame(profile string, members []Member) bool {
+	for i := 1; i < len(members); i++ {
+		a, b := members[0].Path.Display, members[i].Path.Display
+		if profile == "macos" {
+			a, b = norm.NFC.String(a), norm.NFC.String(b)
+		}
+		if !strings.EqualFold(a, b) {
+			return false
+		}
+	}
+	return true
+}
+
+func conflictHint(profile string, same bool) string {
+	switch {
+	case profile == "windows" && same:
+		return "Windows (NTFS) compares names without letter case and these differ only in case, so they very likely collide."
+	case profile == "windows":
+		return "These match only under full Unicode case folding (for example ß and ss); NTFS compares letter by letter, so they are probably different names."
+	case profile == "macos" && same:
+		return "Default APFS ignores letter case and Unicode normalization, so these very likely collide."
+	case profile == "macos":
+		return "These match only under full Unicode case folding; default APFS probably keeps them apart."
+	}
+	return ""
+}
+
+// addHints explains unknown results and sets report.Likely.
+func addHints(report *Report, profile string, truncated bool) {
+	colliding := []string{}
+	likelyCollide, cantTell := false, truncated
+	for i := range report.Conflicts {
+		c := &report.Conflicts[i]
+		if c.Status != "unknown" {
+			continue
+		}
+		if strings.HasPrefix(c.Target, "<undecodable>") {
+			cantTell = true
+			continue
+		}
+		same := likelySame(profile, c.Members)
+		c.Hint = conflictHint(profile, same)
+		if c.Hint == "" {
+			cantTell = true
+			continue
+		}
+		if same {
+			likelyCollide = true
+			for _, m := range c.Members {
+				colliding = append(colliding, m.Path.Display)
+			}
+		}
+	}
+	for i := range report.Issues {
+		issue := &report.Issues[i]
+		if issue.Status != "unknown" {
+			continue
+		}
+		if issue.Code != "unknown_semantics" {
+			cantTell = true
+			continue
+		}
+		issue.Hint = "No other name in this tree matches it, so it very likely works on this destination."
+		for _, member := range colliding {
+			if issue.Path.Display == member || strings.HasPrefix(issue.Path.Display, member+"/") {
+				issue.Hint = fmt.Sprintf("Very likely collides with another name under %q; see the conflicts.", member)
+				break
+			}
+		}
+	}
+	if report.Status != "unknown" {
+		return
+	}
+	switch {
+	case likelyCollide:
+		report.Likely = "incompatible"
+	case !cantTell:
+		report.Likely = "compatible"
+	}
 }

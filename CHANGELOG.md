@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-10-26
+
+- New `treeport git` command reads the Git index (`git ls-files -z --stage`), so a repository can be checked for the names a clone on Windows or macOS will create. Symlinks and submodules keep their kind.
+- New `nfd_name` warning for names in decomposed Unicode (NFD), as macOS often writes them, under the posix, windows and export-fold profiles. Warnings are a new `warnings` array and never change `status`.
+- Unknown results now carry a `hint` and the report a `likely` verdict: names that differ only in letter case very likely collide on NTFS and default APFS; a non-ASCII name nothing else matches very likely works.
+- CLI exit codes follow `likely` for unknown results (0 or 1). `--strict` keeps the previous behavior of exiting 3 for every unknown result.
+- The pre-commit hook now runs `treeport git` instead of `treeport scan .`, so it checks the index and no longer reads untracked or ignored files such as `node_modules`. Its default arguments are unchanged.
+- Added a composite GitHub Action (`uses: rad1092/treeport@v0.2.0`).
+- Profiles, revisions and existing issue codes are unchanged.
+
 ## 0.1.3 — 2026-10-08
 
 - Include pinned upstream license and patent-grant texts for x/text and Go in source and all six binary archives, with source URLs and SHA-256 digests.
