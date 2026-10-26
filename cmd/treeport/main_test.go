@@ -239,6 +239,8 @@ func TestCLIGitChecksTheNamesACloneWillCreate(t *testing.T) {
 		return strings.TrimSpace(string(out))
 	}
 	runGit("", "init", "-q")
+	// Git for Windows refuses reserved names in the index unless asked not to.
+	runGit("", "config", "core.protectNTFS", "false")
 	// Stage the names straight into the index. Windows cannot create aux.c and
 	// case-insensitive file systems cannot hold both README spellings, but a
 	// repository made elsewhere can contain all three.
