@@ -228,21 +228,24 @@ func TestCLIGitChecksTheNamesACloneWillCreate(t *testing.T) {
 		t.Skip("git is not installed")
 	}
 	dir := t.TempDir()
-	runGit := func(args ...string) {
+	runGit := func(stdin string, args ...string) string {
 		t.Helper()
 		cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
-		if out, err := cmd.CombinedOutput(); err != nil {
+		cmd.Stdin = strings.NewReader(stdin)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
 			t.Fatalf("git %v: %v\n%s", args, err, out)
 		}
+		return strings.TrimSpace(string(out))
 	}
-	runGit("init", "-q")
-	runGit("config", "core.ignorecase", "false")
+	runGit("", "init", "-q")
+	// Stage the names straight into the index. Windows cannot create aux.c and
+	// case-insensitive file systems cannot hold both README spellings, but a
+	// repository made elsewhere can contain all three.
+	blob := runGit("x", "hash-object", "-w", "--stdin")
 	for _, name := range []string{"Readme.md", "README.md", "aux.c"} {
-		if err := os.WriteFile(filepath.Join(dir, name), []byte("x"), 0o644); err != nil {
-			t.Fatal(err)
-		}
+		runGit("", "update-index", "--add", "--cacheinfo", "100644,"+blob+","+name)
 	}
-	runGit("add", "-A")
 	var stdout, stderr bytes.Buffer
 	code := run(context.Background(), []string{"git", "--profile", "windows", "--root", `C:\src\repo`, dir}, nil, &stdout, &stderr)
 	if code != 1 {
